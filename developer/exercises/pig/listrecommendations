@@ -1,0 +1,14 @@
+movies = LOAD 'movie' AS (movieid, name, year);
+recs = LOAD 'recs' AS (userid, reclist);
+
+longlist = FOREACH recs generate userid, FLATTEN(TOKENIZE(reclist)) AS movieandscore;
+
+finallist = FOREACH longlist generate userid, REGEX_EXTRACT(movieandscore, '(\\d+)', 1) AS movieid;
+
+results = JOIN finallist BY movieid, movies BY movieid;
+
+final = FOREACH results generate userid, name;
+
+srtd = ORDER final BY userid;
+
+dump srtd;
